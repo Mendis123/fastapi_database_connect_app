@@ -1,9 +1,30 @@
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
+
 from config import settings
 
-engine = create_engine(settings.database_url)
+engine = create_engine(
+    settings.database_url,
+    echo=False,
+    pool_pre_ping=True,
+    pool_recycle=3600,
+)
 
-with engine.connect() as connection:
-    connection.execute(text('SELECT 1'))
+sessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
-print('database connection successful')
+class Base(DeclarativeBase):
+    """base class that create from the declarative class"""
+
+def get_db():
+    db = sessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+
+
+
+
+
